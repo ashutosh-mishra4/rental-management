@@ -27,6 +27,17 @@ const notificationsSlice = createSlice({
     markAllAsRead: (state) => {
       state.items.forEach(item => item.read = true);
       state.unreadCount = 0;
+    },
+    addNotification: (state, action) => {
+      const newNotification = {
+        id: Date.now(),
+        title: action.payload.title,
+        message: action.payload.message,
+        timestamp: new Date(),
+        read: false
+      };
+      state.items.unshift(newNotification);
+      state.unreadCount += 1;
     }
   }
 });
@@ -237,7 +248,14 @@ export const dashboardApi = createApi({
     }),
     archiveProperties: builder.mutation({
       queryFn: (propertyIds: number[]) => {
-        // In a real app, this would make an API call to archive properties
+        // Update property status to archived in mock data
+        propertyIds.forEach(id => {
+          const propertyIndex = propertiesMockQuery.properties.findIndex(p => p.id === id);
+          if (propertyIndex !== -1) {
+            propertiesMockQuery.properties[propertyIndex].status = 'archived' as any;
+          }
+        });
+        
         console.log('Archiving properties:', propertyIds);
         return { data: { success: true, archivedCount: propertyIds.length } };
       },
@@ -331,7 +349,7 @@ export const store = configureStore({
     getDefaultMiddleware().concat(dashboardApi.middleware)
 });
 
-export const { markAsRead, markAllAsRead } = notificationsSlice.actions;
+export const { markAsRead, markAllAsRead, addNotification } = notificationsSlice.actions;
 export const { markPaymentAsPaid } = paymentsSlice.actions;
 export const { 
   setViewMode, 

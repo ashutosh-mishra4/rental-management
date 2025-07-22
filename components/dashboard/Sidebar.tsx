@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout, Menu } from 'antd';
+import { useRouter, usePathname } from 'next/navigation';
 import styled from '@emotion/styled';
 import { 
   LayoutDashboard, 
@@ -47,14 +48,49 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
-  const [selectedKey, setSelectedKey] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const path = window.location.pathname;
-      if (path.includes('properties')) return 'properties';
-      return 'dashboard';
+  const router = useRouter();
+  const pathname = usePathname();
+  const [selectedKey, setSelectedKey] = useState('dashboard');
+
+  // Update selected key based on current pathname
+  useEffect(() => {
+    if (pathname.includes('properties')) {
+      setSelectedKey('properties');
+    } else if (pathname === '/' || pathname.includes('dashboard')) {
+      setSelectedKey('dashboard');
     }
-    return 'dashboard';
-  });
+  }, [pathname]);
+
+  const handleMenuClick = ({ key }: { key: string }) => {
+    setSelectedKey(key);
+    
+    // Navigate to the appropriate route
+    switch (key) {
+      case 'dashboard':
+        router.push('/');
+        break;
+      case 'properties':
+        router.push('/properties');
+        break;
+      case 'tenants':
+        // Future implementation
+        break;
+      case 'invoices':
+        // Future implementation
+        break;
+      case 'payments':
+        // Future implementation
+        break;
+      case 'settings':
+        // Future implementation
+        break;
+      case 'support':
+        // Future implementation
+        break;
+      default:
+        break;
+    }
+  };
 
   const menuItems = [
     {
@@ -109,7 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
         mode="inline"
         selectedKeys={[selectedKey]}
         items={menuItems}
-        onClick={({ key }) => setSelectedKey(key)}
+        onClick={handleMenuClick}
       />
     </StyledSider>
   );

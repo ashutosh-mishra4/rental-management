@@ -3,6 +3,7 @@ import { Layout, Spin, message } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
 import styled from '@emotion/styled';
 import { Building, FileText, Users } from 'lucide-react';
+import { downloadPropertiesCSV } from '../../utils/downloadUtils';
 import Sidebar from '../dashboard/Sidebar';
 import TopBar from '../dashboard/TopBar';
 import PropertiesHeader from './PropertiesHeader';
@@ -31,7 +32,8 @@ import {
   selectAllProperties,
   clearPropertySelection,
   openAddPropertyModal,
-  closeAddPropertyModal
+  closeAddPropertyModal,
+  addNotification
 } from '../../store';
 import { PropertyViewMode } from '../../types/enums';
 import type { RootState } from '../../store';
@@ -169,6 +171,13 @@ const PropertiesPage: React.FC = () => {
     
     try {
       const result = await sendReminders(selectedProperties).unwrap();
+      
+      // Add notification for successful reminder sending
+      dispatch(addNotification({
+        title: 'Reminders Sent Successfully',
+        message: `Payment reminders have been sent to ${result.remindersSent} ${result.remindersSent === 1 ? 'property' : 'properties'}. Tenants will receive notifications via email and SMS.`
+      }));
+      
       message.success(`Reminders sent to ${result.remindersSent} ${result.remindersSent === 1 ? 'property' : 'properties'}`);
       dispatch(clearPropertySelection());
     } catch (error) {
@@ -186,6 +195,7 @@ const PropertiesPage: React.FC = () => {
       const result = await archiveProperties(selectedProperties).unwrap();
       message.success(`${result.archivedCount} ${result.archivedCount === 1 ? 'property' : 'properties'} archived successfully`);
       dispatch(clearPropertySelection());
+      refetch(); // Refresh the properties list to show updated status
     } catch (error) {
       message.error('Failed to archive properties');
     }
@@ -198,10 +208,16 @@ const PropertiesPage: React.FC = () => {
     }
     
     try {
+      // Get the selected properties data
+      const selectedPropertiesData = properties.filter(property => 
+        selectedProperties.includes(property.id)
+      );
+      
+      // Download the CSV file
+      downloadPropertiesCSV(selectedPropertiesData);
+      
       const result = await exportCSV(selectedProperties).unwrap();
-      message.success(`CSV export ready! ${result.exportedCount} ${result.exportedCount === 1 ? 'property' : 'properties'} exported`);
-      // In a real app, you would trigger the download here
-      // window.open(result.downloadUrl, '_blank');
+      message.success(`CSV export completed! ${result.exportedCount} ${result.exportedCount === 1 ? 'property' : 'properties'} exported`);
       dispatch(clearPropertySelection());
     } catch (error) {
       message.error('Failed to export CSV');

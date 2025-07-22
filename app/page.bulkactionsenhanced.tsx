@@ -3,11 +3,11 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { ConfigProvider } from 'antd';
-import { store } from '../../store';
-import theme from '../../theme';
-import PropertiesPage from '../../components/properties/PropertiesPage';
+import { store } from '../store';
+import theme from '../theme';
+import PropertiesPage from '../components/properties/PropertiesPage';
 
-const PropertiesRoute: React.FC = () => {
+const BulkActionsEnhancedPreview: React.FC = () => {
   return (
     <Provider store={store}>
       <ConfigProvider theme={theme}>
@@ -17,4 +17,4 @@ const PropertiesRoute: React.FC = () => {
   );
 };
 
-export default PropertiesRoute;
+export default BulkActionsEnhancedPreview;
