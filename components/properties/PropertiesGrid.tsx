@@ -64,9 +64,9 @@ const PropertiesGrid: React.FC<PropertiesGridProps> = ({
             xs={24} 
             sm={12} 
             md={8} 
-            lg={6} 
-            xl={6}
-            xxl={4}
+            lg={8} 
+            xl={8}
+            xxl={8}
           >
             <PropertyCard
               property={property}

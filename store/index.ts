@@ -280,6 +280,30 @@ export const dashboardApi = createApi({
       },
       invalidatesTags: ['Properties']
     }),
+    updateProperty: builder.mutation({
+      queryFn: ({ id, ...propertyData }: any) => {
+        // Import here to avoid circular dependency
+        const { mockContacts } = require('../data/addPropertyMockData');
+        
+        // Find and update the property in mock data
+        const propertyIndex = propertiesMockQuery.properties.findIndex(p => p.id === id);
+        if (propertyIndex !== -1) {
+          const updatedProperty = {
+            ...propertiesMockQuery.properties[propertyIndex],
+            ...propertyData,
+            manager: mockContacts.find((c: any) => c.id === propertyData.managerId && c.role === 'Property Manager'),
+            owner: mockContacts.find((c: any) => c.id === propertyData.ownerId && c.role === 'Property Owner')
+          };
+          
+          propertiesMockQuery.properties[propertyIndex] = updatedProperty;
+          console.log('Updating property:', updatedProperty);
+          return { data: updatedProperty };
+        }
+        
+        throw new Error('Property not found');
+      },
+      invalidatesTags: ['Properties']
+    }),
     getAvailableContacts: builder.query({
       queryFn: () => {
         const { mockContacts } = require('../data/addPropertyMockData');
@@ -331,6 +355,7 @@ export const {
   useSendRemindersMutation,
   useExportPropertiesCSVMutation,
   useCreatePropertyMutation,
+  useUpdatePropertyMutation,
   useGetAvailableContactsQuery,
   useGetAvailableCitiesQuery
 } = dashboardApi;

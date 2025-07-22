@@ -14,6 +14,8 @@ const StyledSelect = styled(Select)`
     border-radius: 6px;
     background: #F3F4F6;
     border: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
   }
 `;
 
@@ -57,7 +59,14 @@ const PropertyTagsSelector: React.FC<PropertyTagsSelectorProps> = ({
             color="blue"
             closable={closable}
             onClose={onClose}
-            style={{ marginRight: 3, borderRadius: 6 }}
+            style={{ 
+              marginRight: 3, 
+              borderRadius: 6,
+              display: 'flex',
+              alignItems: 'center',
+              lineHeight: '20px',
+              height: '24px'
+            }}
           >
             {label}
           </Tag>

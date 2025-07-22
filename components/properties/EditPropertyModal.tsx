@@ -20,8 +20,8 @@ import ContactSelector from './ContactSelector';
 import PropertyTagsSelector from './PropertyTagsSelector';
 import { useFormValidation } from '../../hooks/useFormValidation';
 import { PropertyStatus } from '../../types/enums';
-import type { PropertyFormData, ContactOption } from '../../types/schema';
-import { mockContacts, mockCities, defaultPropertyForm } from '../../data/addPropertyMockData';
+import type { PropertyFormData, ContactOption, Property } from '../../types/schema';
+import { mockContacts, mockCities } from '../../data/addPropertyMockData';
 import { formatPropertyStatus } from '../../utils/formatters';
 
 const { Title, Text } = Typography;
@@ -121,33 +121,52 @@ const CalculationText = styled(Text)`
   font-size: 13px;
 `;
 
-interface AddPropertyModalProps {
+interface EditPropertyModalProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (propertyData: PropertyFormData) => Promise<void>;
+  property: Property | null;
   loading?: boolean;
 }
 
-const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
+const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   open,
   onClose,
   onSubmit,
+  property,
   loading = false
 }) => {
   const [form] = Form.useForm();
-  const [formData, setFormData] = useState<PropertyFormData>(defaultPropertyForm);
+  const [formData, setFormData] = useState<PropertyFormData | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { errors, validateForm, isFormValid, clearErrors } = useFormValidation();
 
   useEffect(() => {
-    if (open) {
-      form.resetFields();
-      setFormData(defaultPropertyForm);
+    if (open && property) {
+      const propertyFormData: PropertyFormData = {
+        name: property.name,
+        address: property.address,
+        city: property.city,
+        description: '', // Property doesn't have description in schema
+        thumbnail: property.thumbnail,
+        units: property.units,
+        monthlyRevenue: property.monthlyRevenue,
+        averageRent: property.monthlyRevenue / property.units.total || 0,
+        status: property.status,
+        managerId: property.manager.id,
+        ownerId: property.owner.id,
+        tags: property.tags
+      };
+      
+      setFormData(propertyFormData);
+      form.setFieldsValue(propertyFormData);
       clearErrors();
     }
-  }, [open, form, clearErrors]);
+  }, [open, property, form, clearErrors]);
 
   const handleFieldChange = (field: keyof PropertyFormData, value: any) => {
+    if (!formData) return;
+    
     const newFormData = { ...formData, [field]: value };
     
     // Auto-calculate vacant units
@@ -162,6 +181,8 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
   };
 
   const handleUnitsChange = (type: 'total' | 'occupied', value: number | null) => {
+    if (!formData) return;
+    
     const newUnits = { ...formData.units };
     newUnits[type] = value || 0;
     newUnits.vacant = Math.max(0, newUnits.total - newUnits.occupied);
@@ -170,6 +191,8 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
   };
 
   const handleSubmit = async () => {
+    if (!formData) return;
+    
     try {
       setSubmitting(true);
       
@@ -180,10 +203,10 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
       }
 
       await onSubmit(formData);
-      message.success('Property created successfully!');
+      message.success('Property updated successfully!');
       onClose();
     } catch (error) {
-      message.error('Failed to create property. Please try again.');
+      message.error('Failed to update property. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -198,12 +221,14 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
         type="primary" 
         onClick={handleSubmit}
         loading={submitting || loading}
-        disabled={!isFormValid(formData)}
+        disabled={!formData || !isFormValid(formData)}
       >
-        Save Property
+        Update Property
       </Button>
     </Space>
   );
+
+  if (!formData) return null;
 
   return (
     <StyledModal
@@ -211,7 +236,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
         <ModalHeader>
           <ModalTitle level={3}>
             <Building size={20} color="#8B5CF6" />
-            Add New Property
+            Edit Property
           </ModalTitle>
           <CloseButton type="text" onClick={onClose}>
             <X size={16} />
@@ -479,4 +504,4 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
   );
 };
 
-export default AddPropertyModal;
+export default EditPropertyModal;

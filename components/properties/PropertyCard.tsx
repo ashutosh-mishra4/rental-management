@@ -26,30 +26,41 @@ const StyledCard = styled(Card)`
 
 const CardHeader = styled.div`
   position: relative;
-  padding: 12px;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
+  height: 160px;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
 `;
 
 const SelectCheckbox = styled(Checkbox)`
   position: absolute;
   top: 12px;
   left: 12px;
+  z-index: 3;
+`;
+
+const PreviewOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
+  border-radius: 12px 12px 0 0;
   z-index: 2;
-  
-  .ant-checkbox-inner {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(255, 255, 255, 0.9);
-  }
+  pointer-events: none;
 `;
 
 const PropertyImage = styled(Image)`
   width: 100%;
   height: 160px;
   object-fit: cover;
+  border-radius: 12px 12px 0 0;
+  display: block;
 `;
 
 const CardContent = styled.div`
   padding: 16px;
+  text-align: left;
 `;
 
 const PropertyTitle = styled(Title)`
@@ -71,7 +82,7 @@ const StatsRow = styled(Row)`
 `;
 
 const StatItem = styled.div`
-  text-align: center;
+  text-align: left;
 `;
 
 const StatValue = styled(Text)`
@@ -145,14 +156,15 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   return (
     <StyledCard>
       <CardHeader>
-        <SelectCheckbox
-          checked={selected}
-          onChange={() => onSelect(property.id)}
-        />
         <PropertyImage
           src={property.thumbnail}
           alt={property.name}
           preview={false}
+        />
+        <PreviewOverlay />
+        <SelectCheckbox
+          checked={selected}
+          onChange={() => onSelect(property.id)}
         />
       </CardHeader>
       

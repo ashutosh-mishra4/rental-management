@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Layout, Spin, message } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
 import styled from '@emotion/styled';
+import { Building, FileText, Users } from 'lucide-react';
 import Sidebar from '../dashboard/Sidebar';
 import TopBar from '../dashboard/TopBar';
 import PropertiesHeader from './PropertiesHeader';
@@ -11,12 +12,18 @@ import PropertiesTable from './PropertiesTable';
 import PropertiesGrid from './PropertiesGrid';
 import BulkActionsBar from './BulkActionsBar';
 import AddPropertyModal from './AddPropertyModal';
+import EditPropertyModal from './EditPropertyModal';
+import RightPanel from './RightPanel';
+import PropertyDetailsPanel from './PropertyDetailsPanel';
+import InvoicesPanel from './InvoicesPanel';
+import TenantsPanel from './TenantsPanel';
 import { 
   useGetPropertiesQuery,
   useArchivePropertiesMutation,
   useSendRemindersMutation,
   useExportPropertiesCSVMutation,
   useCreatePropertyMutation,
+  useUpdatePropertyMutation,
   setViewMode,
   setFilters,
   setSelectedProperties,
@@ -28,6 +35,7 @@ import {
 } from '../../store';
 import { PropertyViewMode } from '../../types/enums';
 import type { RootState } from '../../store';
+import type { Property } from '../../types/schema';
 
 const { Content } = Layout;
 
@@ -59,6 +67,18 @@ const PropertiesPage: React.FC = () => {
   const [sendReminders] = useSendRemindersMutation();
   const [exportCSV] = useExportPropertiesCSVMutation();
   const [createProperty] = useCreatePropertyMutation();
+  const [updateProperty] = useUpdatePropertyMutation();
+
+  // Local state for panels and modals
+  const [rightPanel, setRightPanel] = useState<{
+    type: 'details' | 'invoices' | 'tenants' | null;
+    property: Property | null;
+  }>({ type: null, property: null });
+  
+  const [editModal, setEditModal] = useState<{
+    open: boolean;
+    property: Property | null;
+  }>({ open: false, property: null });
 
   const sidebarWidth = 280;
   const topBarHeight = 72;
@@ -85,18 +105,21 @@ const PropertiesPage: React.FC = () => {
   };
 
   const handlePropertyAction = (action: string, propertyId: number) => {
+    const property = properties.find(p => p.id === propertyId);
+    if (!property) return;
+
     switch (action) {
       case 'view':
-        message.info(`Viewing property ${propertyId}`);
+        setRightPanel({ type: 'details', property });
         break;
       case 'edit':
-        message.info(`Editing property ${propertyId}`);
+        setEditModal({ open: true, property });
         break;
       case 'invoices':
-        message.info(`Viewing invoices for property ${propertyId}`);
+        setRightPanel({ type: 'invoices', property });
         break;
       case 'tenants':
-        message.info(`Managing tenants for property ${propertyId}`);
+        setRightPanel({ type: 'tenants', property });
         break;
     }
   };
@@ -116,6 +139,26 @@ const PropertiesPage: React.FC = () => {
     } catch (error) {
       throw error;
     }
+  };
+
+  const handleUpdateProperty = async (propertyData: any) => {
+    try {
+      if (!editModal.property) return;
+      
+      await updateProperty({ id: editModal.property.id, ...propertyData }).unwrap();
+      refetch(); // Refresh the properties list
+      setEditModal({ open: false, property: null });
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleCloseRightPanel = () => {
+    setRightPanel({ type: null, property: null });
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModal({ open: false, property: null });
   };
 
   const handleSendReminders = async () => {
@@ -236,6 +279,46 @@ const PropertiesPage: React.FC = () => {
         onSubmit={handleCreateProperty}
         loading={addPropertyModal.isLoading}
       />
+
+      <EditPropertyModal
+        open={editModal.open}
+        onClose={handleCloseEditModal}
+        onSubmit={handleUpdateProperty}
+        property={editModal.property}
+        loading={false}
+      />
+
+      <RightPanel
+        open={rightPanel.type !== null}
+        onClose={handleCloseRightPanel}
+        title={
+          rightPanel.type === 'details' ? 'Property Details' :
+          rightPanel.type === 'invoices' ? 'Invoices' :
+          rightPanel.type === 'tenants' ? 'Tenants' : ''
+        }
+        icon={
+          rightPanel.type === 'details' ? <Building size={18} color="#8B5CF6" /> :
+          rightPanel.type === 'invoices' ? <FileText size={18} color="#8B5CF6" /> :
+          rightPanel.type === 'tenants' ? <Users size={18} color="#8B5CF6" /> : null
+        }
+        width={rightPanel.type === 'details' ? 500 : 600}
+      >
+        {rightPanel.type === 'details' && rightPanel.property && (
+          <PropertyDetailsPanel property={rightPanel.property} />
+        )}
+        {rightPanel.type === 'invoices' && rightPanel.property && (
+          <InvoicesPanel 
+            propertyId={rightPanel.property.id} 
+            propertyName={rightPanel.property.name}
+          />
+        )}
+        {rightPanel.type === 'tenants' && rightPanel.property && (
+          <TenantsPanel 
+            propertyId={rightPanel.property.id} 
+            propertyName={rightPanel.property.name}
+          />
+        )}
+      </RightPanel>
     </PropertiesLayout>
   );
 };

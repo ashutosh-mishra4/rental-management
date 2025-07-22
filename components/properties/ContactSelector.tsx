@@ -44,6 +44,7 @@ interface ContactSelectorProps {
   contacts: ContactOption[];
   filterByRole?: 'Property Manager' | 'Property Owner';
   error?: string;
+  hideRoleLabel?: boolean;
 }
 
 const ContactSelector: React.FC<ContactSelectorProps> = ({
@@ -52,7 +53,8 @@ const ContactSelector: React.FC<ContactSelectorProps> = ({
   placeholder = "Select contact",
   contacts,
   filterByRole,
-  error
+  error,
+  hideRoleLabel = false
 }) => {
   const filteredContacts = filterByRole 
     ? contacts.filter(contact => contact.role === filterByRole)
@@ -87,7 +89,7 @@ const ContactSelector: React.FC<ContactSelectorProps> = ({
               </Avatar>
               <ContactInfo>
                 <ContactName>{contact.name}</ContactName>
-                <ContactRole>{contact.role}</ContactRole>
+                {!hideRoleLabel && <ContactRole>{contact.role}</ContactRole>}
               </ContactInfo>
             </OptionContainer>
           </Option>
