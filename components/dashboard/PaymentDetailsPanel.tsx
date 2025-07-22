@@ -187,6 +187,11 @@ const PaymentDetailsPanel: React.FC<PaymentDetailsPanelProps> = ({
     onPaymentUpdate?.();
   };
 
+  const handleSendReminder = () => {
+    // In a real app, this would make an API call to send reminder email/SMS
+    message.success(`Payment reminder sent to ${payment.tenant.name} successfully!`);
+  };
+
   const handleDownloadReceipt = () => {
     downloadPaymentReceipt(payment);
     message.success('Receipt downloaded successfully!');
@@ -397,6 +402,7 @@ const PaymentDetailsPanel: React.FC<PaymentDetailsPanelProps> = ({
                   type="primary" 
                   block 
                   size="large"
+                  onClick={handleSendReminder}
                 >
                   Send Reminder
                 </PrimaryButton>

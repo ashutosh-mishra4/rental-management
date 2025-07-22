@@ -47,7 +47,14 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
-  const [selectedKey, setSelectedKey] = useState('dashboard');
+  const [selectedKey, setSelectedKey] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path.includes('properties')) return 'properties';
+      return 'dashboard';
+    }
+    return 'dashboard';
+  });
 
   const menuItems = [
     {

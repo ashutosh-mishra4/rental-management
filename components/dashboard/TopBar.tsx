@@ -78,6 +78,15 @@ interface TopBarProps {
 const TopBar: React.FC<TopBarProps> = ({ sidebarWidth = 280 }) => {
   const user = useSelector((state: RootState) => state.user);
   const notifications = useSelector((state: RootState) => state.notifications);
+  
+  const getPageTitle = () => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path.includes('properties')) return 'Properties';
+      return 'Dashboard';
+    }
+    return 'Dashboard';
+  };
 
   const userMenuItems = [
     {
@@ -104,7 +113,7 @@ const TopBar: React.FC<TopBarProps> = ({ sidebarWidth = 280 }) => {
   return (
     <StyledHeader sidebarWidth={sidebarWidth}>
       <DashboardTitle>
-        Dashboard
+        {getPageTitle()}
       </DashboardTitle>
 
       <HeaderActions>
